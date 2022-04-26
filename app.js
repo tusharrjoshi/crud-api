@@ -88,14 +88,20 @@ app.patch('/tasklists/:tasklistID',(req, res)=>{
 
 // Delete object using Delete method 
 app.delete('/tasklists/:tasklistID',(req, res)=>{
-    Tasklist.findOneAndDelete({_id:req.params.tasklistID})
-    .then((tasklist)=>{
-        res.status(201).send(tasklist)
-        
-    })
-    .catch((error)=>{
-        console.log(error)
-    })
+
+    //Delete all task under a Tasklist 
+    const deleteAllContainingTask = (taskList) => {
+        Task.deleteMany({ _TaskListID: req.params.tasklistID })
+            .then(() => { return taskList })
+            .catch((error) => { console.log(error) });
+    };
+
+    const responseTaskList = Tasklist.findByIdAndDelete(req.params.tasklistID)
+        .then((taskList) => {
+            deleteAllContainingTask(taskList);
+        })
+        .catch((error) => { console.log(error) });
+    res.status(200).send(responseTaskList);
 })
 
 // CRUD operations on tasks
@@ -114,7 +120,7 @@ app.get('/tasklists/:tasklistID/tasks', (req, res)=>{
 // Get one task under a tasklist
 
 app.get('/tasklists/:tasklistID/tasks/:taskID',(req,res)=>{
-    Task.find({_TasklistID:req.params.tasklistID, _id: req.params.taskID})
+    Task.findOne({_TasklistID:req.params.tasklistID, _id: req.params.taskID})
     .then((task)=>{
         res.status(200).send(task)
     })
@@ -135,6 +141,31 @@ app.post('/tasklists/:tasklistID/tasks',(req,res)=>{
     Task(taskObj).save()
     .then((task)=>{
         res.status(201).send(task)
+    })
+    .catch((error)=>{
+        console.log(error)
+    })
+})
+
+// Update one task in a task list
+
+app.patch('/tasklists/:tasklistID/tasks/:taskID',(req,res)=>{
+    Task.findOneAndUpdate({_TasklistID:req.params.tasklistID, _id:req.params.taskID},{$set: req.body})
+    .then((task)=>{
+        res.status(200).send(task)
+    })
+    .catch((error)=>{
+        console.log(error)
+    })
+})
+
+// Delete one task from a task list 
+
+app.delete('/tasklists/:tasklistID/tasks/:taskID',(req, res)=>{
+    Task.findOneAndDelete({_TasklistID: req.params.tasklistID,_id:req.params.taskID})
+    .then((task)=>{
+        res.status(201).send(task)
+        
     })
     .catch((error)=>{
         console.log(error)
