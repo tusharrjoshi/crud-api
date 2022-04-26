@@ -26,7 +26,10 @@ app.use(express.json()); // third party body parser
 
 app.get('/tasklists', (req,res)=>{
     Tasklist.find({})
-    .then((lists)=>{res.send(lists)})
+    .then((lists)=>{
+        // console.log(lists)
+        res.send(lists)
+    })
     .catch((error)=>{console.log(error)})
 })
 
@@ -88,6 +91,50 @@ app.delete('/tasklists/:tasklistID',(req, res)=>{
     Tasklist.findOneAndDelete({_id:req.params.tasklistID})
     .then((tasklist)=>{
         res.status(201).send(tasklist)
+        
+    })
+    .catch((error)=>{
+        console.log(error)
+    })
+})
+
+// CRUD operations on tasks
+// Get tasks under a taskList
+
+app.get('/tasklists/:tasklistID/tasks', (req, res)=>{
+    Task.find({_TasklistID: req.params.tasklistID})
+    .then((tasks)=>{
+        res.send(tasks)
+    })
+    .catch((error)=>{
+        console.log(error)
+    })
+})
+
+// Get one task under a tasklist
+
+app.get('/tasklists/:tasklistID/tasks/:taskID',(req,res)=>{
+    Task.find({_TasklistID:req.params.tasklistID, _id: req.params.taskID})
+    .then((task)=>{
+        res.status(200).send(task)
+    })
+    .catch((error)=>{
+        console.log(error)
+    })
+})
+
+// Add a task in taskList
+
+app.post('/tasklists/:tasklistID/tasks',(req,res)=>{
+    console.log(req.body)
+
+    let taskObj = {
+        'title':req.body.title,
+        '_TasklistID':req.params.tasklistID
+    }
+    Task(taskObj).save()
+    .then((task)=>{
+        res.status(201).send(task)
     })
     .catch((error)=>{
         console.log(error)
